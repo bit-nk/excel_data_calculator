@@ -88,6 +88,22 @@ export const getChargebackSummary = (billingPeriod: string) =>
     params: { billing_period: validateBillingPeriod(billingPeriod) },
   })
 
+export const markLedgerSent = (reportId: number) =>
+  api.post(`/reports/ledger/${reportId}/mark-sent`)
+
+export async function downloadLedger(reportId: number, format: 'csv' | 'xlsx'): Promise<void> {
+  const res = await api.get(`/reports/ledger/${reportId}.${format}`, { responseType: 'blob' })
+  const blob = new Blob([res.data as Blob])
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `ledger_${reportId}.${format}`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
 // Connectors
 export const getConnectorHealth = () =>
   api.get<ConnectorHealth>('/connectors/health')

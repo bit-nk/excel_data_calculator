@@ -2,6 +2,15 @@ export type Platform = 'aws' | 'mongodb' | 'datadog' | 'confluent' | 'singlestor
 export type CloudFilter = 'all' | 'aws' | 'azure'
 export type UserRole = 'admin' | 'finance' | 'portfolio_manager' | 'viewer'
 
+export interface UserPermissions {
+  view_all_bus: boolean
+  approve_reports: boolean
+  manage_rules: boolean
+  export_ledger: boolean
+}
+
+export type Permission = keyof UserPermissions
+
 export interface User {
   id: number
   email: string
@@ -9,6 +18,7 @@ export interface User {
   role_name: UserRole
   business_unit_id: number | null
   is_active: boolean
+  permissions: UserPermissions
 }
 
 export interface ChargebackReport {

@@ -66,3 +66,37 @@ def require_role(*roles: UserRole):
         return current_user
 
     return checker
+
+
+_PERMISSION_FIELDS = {
+    "view_all_bus": "can_view_all_bus",
+    "approve_reports": "can_approve_reports",
+    "manage_rules": "can_manage_rules",
+    "export_ledger": "can_export_ledger",
+}
+
+
+def require_permission(permission: str):
+    """Dependency factory that checks the user's role grants a specific permission flag."""
+
+    field = _PERMISSION_FIELDS.get(permission)
+    if field is None:
+        raise ValueError(f"Unknown permission: {permission}")
+
+    async def checker(
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> User:
+        await db.refresh(current_user, ["role"])
+        if not getattr(current_user.role, field, False):
+            logger.warning(
+                "Permission denied: user_id=%s role=%s missing=%s",
+                current_user.id, current_user.role.name, permission,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+
+    return checker

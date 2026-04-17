@@ -1,25 +1,39 @@
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import { AuthProvider } from './hooks/useAuth'
 import Overview from './pages/Overview'
-import CostAnalysis from './pages/CostAnalysis'
-import Reports from './pages/Reports'
+import Platforms from './pages/Platforms'
 import ChargebackPage from './pages/ChargebackPage'
+import Invoice from './pages/Invoice'
+import Ledger from './pages/Ledger'
 import Login from './pages/Login'
+import Forbidden from './pages/Forbidden'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Overview />} />
-          <Route path="cost-analysis" element={<CostAnalysis />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="chargeback" element={<ChargebackPage />} />
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Overview />} />
+            <Route path="platforms" element={<Platforms />} />
+            <Route path="invoice" element={<Invoice />} />
+            <Route path="forbidden" element={<Forbidden />} />
+
+            <Route element={<ProtectedRoute roles={['admin', 'finance', 'portfolio_manager']} />}>
+              <Route path="chargeback" element={<ChargebackPage />} />
+            </Route>
+
+            <Route element={<ProtectedRoute permission="export_ledger" />}>
+              <Route path="ledger" element={<Ledger />} />
+            </Route>
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+    </AuthProvider>
   )
 }
 

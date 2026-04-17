@@ -1,5 +1,5 @@
 {
-  "name": "driven-finops-dashboard",
+  "name": "nkfinops-dashboard",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -9,12 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.7.7",
+    "chart.js": "^4.4.7",
+    "lucide-react": "^0.447.0",
     "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
-    "axios": "^1.7.7",
-    "recharts": "^2.12.7",
-    "lucide-react": "^0.447.0"
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@types/react": "^18.3.8",

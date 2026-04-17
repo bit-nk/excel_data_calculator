@@ -6,7 +6,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # App
-    APP_NAME: str = "Driven FinOps - Chargeback Automation"
+    APP_NAME: str = "NkFinOps - Chargeback Automation"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
     SECRET_KEY: str = ""  # REQUIRED — must be set via env or .env

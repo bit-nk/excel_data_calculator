@@ -1,19 +1,29 @@
 # Environment
 backend/.env
 .env
+.env.local
+.env.*.local
 
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
 dist/
 build/
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Node
 frontend/node_modules/
 frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
 
 # IDE
 .vscode/
@@ -24,3 +34,28 @@ frontend/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Project-internal scratch (not part of the product)
+SoW/
+*.docx
+*.doc
+
+# Loose screenshots / binary attachments at repo root
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
+/*.pdf
+/*.zip
+
+# Temporary / ad-hoc scripts (not product code)
+scratch/
+tmp/
+temp/
+*.tmp

@@ -1,88 +1,100 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../services/api'
+import NkFinOpsLogo from '../components/brand/NkFinOpsLogo'
+import { useAuth } from '../hooks/useAuth'
+
+const DEMO_EMAIL = 'admin@nkfinops.local'
+const DEMO_PASSWORD = 'demo-access-2026'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState(DEMO_EMAIL)
+  const [password, setPassword] = useState(DEMO_PASSWORD)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-
-  const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim())
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
-    const trimmedEmail = email.trim()
-    if (!isValidEmail(trimmedEmail)) {
-      setError('Please enter a valid email address')
-      return
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
-
     setLoading(true)
     try {
-      const res = await login(trimmedEmail, password)
-      localStorage.setItem('token', res.data.access_token)
+      await login(email.trim(), password)
       navigate('/')
     } catch {
-      setError('Invalid email or password')
+      setError('Unable to sign in. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-driven-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-driven-navy">DRIVEN</h1>
-          <p className="text-sm text-driven-red font-semibold tracking-wider">UNIFIED FINOPS</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-body px-4">
+      <div className="w-full max-w-md">
+        <div className="bg-surface rounded-card border border-line shadow-lift p-8">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-14 h-14 bg-ink-900 rounded-xl flex items-center justify-center mb-4">
+              <NkFinOpsLogo size={18} />
+            </div>
+            <h1 className="text-xl font-bold text-ink-800 tracking-[-0.3px]">FinOps Engine</h1>
+            <p className="text-xs text-muted mt-1 tracking-[1.5px] uppercase font-semibold">
+              Cloud Cost Allocation
+            </p>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg" role="alert">{error}</div>
-          )}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 border border-driven-gray-300 rounded-lg focus:ring-2 focus:ring-driven-red focus:border-transparent outline-none"
-              autoComplete="email"
-              maxLength={255}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 border border-driven-gray-300 rounded-lg focus:ring-2 focus:ring-driven-red focus:border-transparent outline-none"
-              autoComplete="current-password"
-              maxLength={128}
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-driven-red text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {error && (
+              <div
+                className="bg-danger-soft text-danger text-sm px-3 py-2.5 rounded-lg"
+                role="alert"
+              >
+                {error}
+              </div>
+            )}
+            <div>
+              <label htmlFor="email" className="block text-[13px] font-semibold text-ink-800 mb-1.5">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2.5 bg-input border border-transparent rounded-lg text-sm text-ink-800 focus:outline-none focus:ring-2 focus:ring-accent focus:bg-white transition"
+                autoComplete="email"
+                maxLength={255}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-[13px] font-semibold text-ink-800 mb-1.5">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 bg-input border border-transparent rounded-lg text-sm text-ink-800 focus:outline-none focus:ring-2 focus:ring-accent focus:bg-white transition"
+                autoComplete="current-password"
+                maxLength={128}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 py-3 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-semibold shadow-accent hover:shadow-lift transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Signing in…' : 'Sign In'}
+            </button>
+
+            <p className="text-[11px] text-muted-soft text-center mt-3">
+              Demo mode — credentials pre-filled. Backend optional.
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   )

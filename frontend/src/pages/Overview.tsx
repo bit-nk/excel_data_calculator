@@ -1,90 +1,112 @@
-import { DollarSign, TrendingUp, AlertTriangle, Server } from 'lucide-react'
-
-const stats = [
-  { label: 'Total Monthly Spend', value: '$2.4M', change: '+12%', icon: DollarSign, color: 'bg-blue-100 text-blue-600' },
-  { label: 'Chargeback Coverage', value: '94.2%', change: '+3.1%', icon: TrendingUp, color: 'bg-green-100 text-green-600' },
-  { label: 'Cost Anomalies', value: '7', change: '-2', icon: AlertTriangle, color: 'bg-yellow-100 text-yellow-600' },
-  { label: 'Active Platforms', value: '6/6', change: 'Healthy', icon: Server, color: 'bg-purple-100 text-purple-600' },
-]
-
-const platformSpend = [
-  { name: 'AWS', spend: '$1,245,000', pct: 52, color: 'bg-orange-500' },
-  { name: 'MongoDB Atlas', spend: '$420,000', pct: 18, color: 'bg-green-500' },
-  { name: 'Datadog', spend: '$380,000', pct: 16, color: 'bg-purple-500' },
-  { name: 'Confluent', spend: '$210,000', pct: 9, color: 'bg-blue-500' },
-  { name: 'SingleStore', spend: '$85,000', pct: 3, color: 'bg-cyan-500' },
-  { name: 'Harness', spend: '$60,000', pct: 2, color: 'bg-gray-500' },
-]
+import { DollarSign, TrendingUp, Layers, Users, Check } from 'lucide-react'
+import PageHeader from '../components/common/PageHeader'
+import Card from '../components/common/Card'
+import KpiCard from '../components/dashboard/KpiCard'
+import SpendTrendChart from '../components/charts/SpendTrendChart'
+import PlatformDonut from '../components/charts/PlatformDonut'
+import {
+  CONNECTIONS,
+  CURRENT_PERIOD,
+  MONTHLY_TOTALS,
+  PLATFORMS,
+  PORTFOLIO_MANAGERS,
+  calcChange,
+  formatCurrency,
+  formatPercent,
+} from '../data/mock'
 
 export default function Overview() {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-driven-navy">Dashboard Overview</h2>
+  const totalSpend = PLATFORMS.reduce((s, p) => s + p.spend, 0)
+  const prevTotal = PLATFORMS.reduce((s, p) => s + p.prevSpend, 0)
+  const change = calcChange(totalSpend, prevTotal)
+  const prevMonth = MONTHLY_TOTALS[MONTHLY_TOTALS.length - 2]?.month ?? 'prev month'
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4">
-        {stats.map(({ label, value, change, icon: Icon, color }) => (
-          <div key={label} className="bg-white rounded-xl p-5 shadow-sm border border-driven-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>
-                <Icon size={20} />
-              </div>
-              <span className="text-xs font-medium text-green-600">{change}</span>
-            </div>
-            <div className="text-2xl font-bold text-driven-navy">{value}</div>
-            <div className="text-sm text-gray-500 mt-1">{label}</div>
-          </div>
-        ))}
+  return (
+    <div>
+      <PageHeader
+        title="Executive Overview"
+        subtitle={`Cloud infrastructure spend summary for ${CURRENT_PERIOD}`}
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-7">
+        <KpiCard
+          label="Total Cloud Spend"
+          icon={<DollarSign />}
+          value={formatCurrency(totalSpend)}
+          accentColor="#E33529"
+          trend={{ direction: change >= 0 ? 'up' : 'down', label: formatPercent(change) }}
+        />
+        <KpiCard
+          label="Month-over-Month"
+          icon={<TrendingUp />}
+          value={formatPercent(change)}
+          accentColor="#10B981"
+          trend={{ direction: change >= 0 ? 'up' : 'down', label: `vs. ${prevMonth}` }}
+        />
+        <KpiCard
+          label="Active Platforms"
+          icon={<Layers />}
+          value={PLATFORMS.length.toString()}
+          accentColor="#3B82F6"
+          tag={{ variant: 'green', label: 'All Connected' }}
+        />
+        <KpiCard
+          label="Portfolio Managers"
+          icon={<Users />}
+          value={PORTFOLIO_MANAGERS.length.toString()}
+          accentColor="#8B5CF6"
+          tag={{ variant: 'blue', label: 'Active Chargebacks' }}
+        />
       </div>
 
-      {/* Platform Spend Breakdown */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-driven-gray-200">
-        <h3 className="text-lg font-semibold text-driven-navy mb-4">Spend by Platform</h3>
-        <div className="space-y-3">
-          {platformSpend.map(({ name, spend, pct, color }) => (
-            <div key={name} className="flex items-center gap-4">
-              <div className="w-28 text-sm font-medium text-gray-700">{name}</div>
-              <div className="flex-1 bg-driven-gray-100 rounded-full h-3">
-                <div className={`${color} h-3 rounded-full`} style={{ width: `${pct}%` }} />
+      <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-5 mb-7">
+        <Card title="Spend Trend" subtitle="6-month rolling total cloud spend">
+          <div className="h-[280px] relative">
+            <SpendTrendChart />
+          </div>
+        </Card>
+
+        <Card title="Spend by Platform" subtitle={`${CURRENT_PERIOD} distribution`}>
+          <div className="h-[220px] relative">
+            <PlatformDonut />
+          </div>
+          <div className="flex flex-wrap justify-center gap-4 mt-3">
+            {PLATFORMS.map((p) => (
+              <div key={p.id} className="flex items-center gap-1.5 text-xs text-muted">
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: p.color }}
+                />
+                {p.name.replace('Amazon Web Services', 'AWS').replace('MongoDB Atlas', 'MongoDB')}
               </div>
-              <div className="w-24 text-right text-sm font-semibold text-driven-navy">{spend}</div>
-              <div className="w-12 text-right text-xs text-gray-500">{pct}%</div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <Card
+        title="Data Source Connections"
+        subtitle="Real-time ingestion pipeline status"
+        actions={
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-ok-soft text-ok text-[11px] font-semibold rounded-md">
+            <Check size={12} strokeWidth={2} />
+            All Healthy
+          </span>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {CONNECTIONS.map((c) => (
+            <div
+              key={c.name}
+              className="flex items-center gap-2.5 px-4 py-3 bg-[#FAFBFC] border border-line rounded-lg"
+            >
+              <span className="w-2 h-2 rounded-full bg-ok shrink-0" />
+              <span className="text-[13px] font-medium text-ink-800">{c.name}</span>
+              <span className="text-[11px] text-muted-soft ml-auto">{c.lastSync}</span>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-driven-gray-200">
-          <h3 className="text-lg font-semibold text-driven-navy mb-4">Recent Chargeback Reports</h3>
-          <div className="space-y-3">
-            {['2026-03', '2026-02', '2026-01'].map((period) => (
-              <div key={period} className="flex items-center justify-between py-2 border-b border-driven-gray-100">
-                <span className="text-sm font-medium">{period}</span>
-                <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                  Approved
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-driven-gray-200">
-          <h3 className="text-lg font-semibold text-driven-navy mb-4">Connector Status</h3>
-          <div className="space-y-3">
-            {['AWS', 'MongoDB', 'Datadog', 'Confluent', 'SingleStore', 'Harness'].map((name) => (
-              <div key={name} className="flex items-center justify-between py-2 border-b border-driven-gray-100">
-                <span className="text-sm font-medium">{name}</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-xs text-gray-500">Connected</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      </Card>
     </div>
   )
 }

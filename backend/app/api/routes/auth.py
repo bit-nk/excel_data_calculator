@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import verify_password_constant_time, create_access_token
 from app.models.users import User
-from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
+from app.schemas.auth import LoginRequest, TokenResponse, UserPermissions, UserResponse
 from app.api.deps import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -47,11 +47,18 @@ async def get_me(
     db: AsyncSession = Depends(get_db),
 ):
     await db.refresh(current_user, ["role"])
+    role = current_user.role
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
         full_name=current_user.full_name,
-        role_name=current_user.role.name,
+        role_name=role.name,
         business_unit_id=current_user.business_unit_id,
         is_active=current_user.is_active,
+        permissions=UserPermissions(
+            view_all_bus=role.can_view_all_bus,
+            approve_reports=role.can_approve_reports,
+            manage_rules=role.can_manage_rules,
+            export_ledger=role.can_export_ledger,
+        ),
     )

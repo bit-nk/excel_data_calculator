@@ -1,154 +1,136 @@
-import { useState } from 'react'
-import { Download, RefreshCw, CheckCircle } from 'lucide-react'
-
-interface BUSummary {
-  bu: string
-  code: string
-  aws: number
-  mongodb: number
-  datadog: number
-  confluent: number
-  singlestore: number
-  harness: number
-  directTotal: number
-  shared: number
-  fee: number
-  grandTotal: number
-}
-
-const mockData: BUSummary[] = [
-  { bu: 'Global Equities', code: 'GEQ', aws: 312000, mongodb: 105000, datadog: 95000, confluent: 52500, singlestore: 21250, harness: 15000, directTotal: 600750, shared: 72090, fee: 120150, grandTotal: 792990 },
-  { bu: 'Quantitative Strategies', code: 'QST', aws: 280000, mongodb: 94500, datadog: 85500, confluent: 47250, singlestore: 19125, harness: 13500, directTotal: 539875, shared: 64785, fee: 107975, grandTotal: 712635 },
-  { bu: 'Multi-Strategy', code: 'MST', aws: 218000, mongodb: 73500, datadog: 66500, confluent: 36750, singlestore: 14875, harness: 10500, directTotal: 420125, shared: 50415, fee: 84025, grandTotal: 554565 },
-  { bu: 'Technology', code: 'TCH', aws: 186000, mongodb: 63000, datadog: 57000, confluent: 31500, singlestore: 12750, harness: 9000, directTotal: 359250, shared: 43110, fee: 71850, grandTotal: 474210 },
-  { bu: 'Platform Engineering', code: 'PLE', aws: 155000, mongodb: 52500, datadog: 47500, confluent: 26250, singlestore: 10625, harness: 7500, directTotal: 299375, shared: 35925, fee: 59875, grandTotal: 395175 },
-  { bu: 'Risk Management', code: 'RSK', aws: 94000, mongodb: 31500, datadog: 28500, confluent: 15750, singlestore: 6375, harness: 4500, directTotal: 180625, shared: 21675, fee: 36125, grandTotal: 238425 },
-]
-
-const fmt = (n: number) => `$${(n / 1000).toFixed(0)}K`
+import { Download } from 'lucide-react'
+import PageHeader from '../components/common/PageHeader'
+import Card from '../components/common/Card'
+import ChargebackBars from '../components/charts/ChargebackBars'
+import { PORTFOLIO_MANAGERS, formatCurrency, initials } from '../data/mock'
 
 export default function ChargebackPage() {
-  const [period, setPeriod] = useState('2026-03')
-
-  const totals = mockData.reduce(
-    (acc, row) => ({
-      aws: acc.aws + row.aws,
-      mongodb: acc.mongodb + row.mongodb,
-      datadog: acc.datadog + row.datadog,
-      confluent: acc.confluent + row.confluent,
-      singlestore: acc.singlestore + row.singlestore,
-      harness: acc.harness + row.harness,
-      directTotal: acc.directTotal + row.directTotal,
-      shared: acc.shared + row.shared,
-      fee: acc.fee + row.fee,
-      grandTotal: acc.grandTotal + row.grandTotal,
-    }),
-    { aws: 0, mongodb: 0, datadog: 0, confluent: 0, singlestore: 0, harness: 0, directTotal: 0, shared: 0, fee: 0, grandTotal: 0 }
+  const maxTotal = Math.max(
+    ...PORTFOLIO_MANAGERS.map((pm) => pm.directCost + pm.sharedAlloc + pm.foundationalFee),
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-driven-navy">Chargeback Report</h2>
-          <p className="text-sm text-gray-500 mt-1">Department and team-wise cost allocation</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="month"
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="px-4 py-2 border border-driven-gray-300 rounded-lg text-sm"
-          />
-          <button className="flex items-center gap-2 px-4 py-2 bg-driven-navy text-white text-sm rounded-lg hover:opacity-90">
-            <RefreshCw size={14} />
-            Generate
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:opacity-90">
-            <CheckCircle size={14} />
-            Approve
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-driven-red text-white text-sm rounded-lg hover:opacity-90">
-            <Download size={14} />
-            Export
-          </button>
-        </div>
+    <div>
+      <PageHeader
+        title="Portfolio Manager Chargeback"
+        subtitle="Cost allocation by PM — Direct costs, shared allocation, and 20% foundational fee"
+      />
+
+      <div className="mb-6">
+        <Card
+          title="Chargeback Distribution"
+          subtitle="Stacked cost breakdown per Portfolio Manager"
+        >
+          <div className="h-[320px] relative">
+            <ChargebackBars />
+          </div>
+        </Card>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-driven-gray-200">
-          <div className="text-sm text-gray-500">Total Direct Costs</div>
-          <div className="text-xl font-bold text-driven-navy mt-1">{fmt(totals.directTotal)}</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-driven-gray-200">
-          <div className="text-sm text-gray-500">Shared Cost Allocation</div>
-          <div className="text-xl font-bold text-driven-navy mt-1">{fmt(totals.shared)}</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-driven-gray-200">
-          <div className="text-sm text-gray-500">Management Fee (20%)</div>
-          <div className="text-xl font-bold text-driven-navy mt-1">{fmt(totals.fee)}</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-driven-gray-200">
-          <div className="text-sm text-gray-500">Grand Total</div>
-          <div className="text-xl font-bold text-driven-red mt-1">{fmt(totals.grandTotal)}</div>
-        </div>
-      </div>
-
-      {/* Chargeback table */}
-      <div className="bg-white rounded-xl shadow-sm border border-driven-gray-200 overflow-hidden">
+      <Card
+        title="Detailed Chargeback Table"
+        subtitle="Per-PM itemized cost allocation"
+        flush
+        actions={
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-input rounded-lg text-[13px] font-semibold text-ink-800 hover:bg-[#E0E1E5] transition-colors"
+          >
+            <Download size={16} strokeWidth={1.8} />
+            Export CSV
+          </button>
+        }
+      >
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-driven-navy text-white">
-                <th className="text-left py-3 px-4 font-medium">Business Unit</th>
-                <th className="text-right py-3 px-4 font-medium">AWS</th>
-                <th className="text-right py-3 px-4 font-medium">MongoDB</th>
-                <th className="text-right py-3 px-4 font-medium">Datadog</th>
-                <th className="text-right py-3 px-4 font-medium">Confluent</th>
-                <th className="text-right py-3 px-4 font-medium">SingleStore</th>
-                <th className="text-right py-3 px-4 font-medium">Harness</th>
-                <th className="text-right py-3 px-4 font-medium bg-blue-900">Direct Total</th>
-                <th className="text-right py-3 px-4 font-medium bg-blue-900">Shared</th>
-                <th className="text-right py-3 px-4 font-medium bg-blue-900">Mgmt Fee</th>
-                <th className="text-right py-3 px-4 font-medium bg-red-900">Grand Total</th>
+              <tr className="bg-[#FAFBFC]">
+                {[
+                  'Portfolio Manager',
+                  'Cost Code',
+                  'Direct Costs',
+                  'Shared Alloc.',
+                  'Foundation Fee',
+                  'Total',
+                  'Distribution',
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.8px] text-muted border-b border-line"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {mockData.map((row, i) => (
-                <tr key={row.code} className={i % 2 === 0 ? 'bg-white' : 'bg-driven-gray-50'}>
-                  <td className="py-3 px-4 font-medium">
-                    <div>{row.bu}</div>
-                    <div className="text-xs text-gray-400">{row.code}</div>
-                  </td>
-                  <td className="text-right py-3 px-4">{fmt(row.aws)}</td>
-                  <td className="text-right py-3 px-4">{fmt(row.mongodb)}</td>
-                  <td className="text-right py-3 px-4">{fmt(row.datadog)}</td>
-                  <td className="text-right py-3 px-4">{fmt(row.confluent)}</td>
-                  <td className="text-right py-3 px-4">{fmt(row.singlestore)}</td>
-                  <td className="text-right py-3 px-4">{fmt(row.harness)}</td>
-                  <td className="text-right py-3 px-4 font-semibold bg-blue-50">{fmt(row.directTotal)}</td>
-                  <td className="text-right py-3 px-4 bg-blue-50">{fmt(row.shared)}</td>
-                  <td className="text-right py-3 px-4 bg-blue-50">{fmt(row.fee)}</td>
-                  <td className="text-right py-3 px-4 font-bold text-driven-red bg-red-50">{fmt(row.grandTotal)}</td>
-                </tr>
-              ))}
-              {/* Totals row */}
-              <tr className="bg-driven-navy text-white font-semibold">
-                <td className="py-3 px-4">TOTAL</td>
-                <td className="text-right py-3 px-4">{fmt(totals.aws)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.mongodb)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.datadog)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.confluent)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.singlestore)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.harness)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.directTotal)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.shared)}</td>
-                <td className="text-right py-3 px-4">{fmt(totals.fee)}</td>
-                <td className="text-right py-3 px-4 text-red-300">{fmt(totals.grandTotal)}</td>
-              </tr>
+              {PORTFOLIO_MANAGERS.map((pm) => {
+                const total = pm.directCost + pm.sharedAlloc + pm.foundationalFee
+                const directPct = (pm.directCost / total) * 100
+                const sharedPct = (pm.sharedAlloc / total) * 100
+                const foundPct = (pm.foundationalFee / total) * 100
+                const barWidth = (total / maxTotal) * 100
+                return (
+                  <tr key={pm.id} className="hover:bg-[#F9FAFB] transition-colors">
+                    <td className="px-4 py-3.5 text-[13.5px] border-b border-[#F3F4F6]">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+                          style={{ background: pm.color }}
+                        >
+                          {initials(pm.name)}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-ink-800">{pm.name}</div>
+                          <div className="text-[11px] text-muted-soft font-normal">{pm.team}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 text-[13.5px] border-b border-[#F3F4F6] tabular-nums text-ink-800">
+                      {pm.costCode}
+                    </td>
+                    <td className="px-4 py-3.5 text-[13.5px] border-b border-[#F3F4F6] tabular-nums font-semibold text-ink-800">
+                      {formatCurrency(pm.directCost)}
+                    </td>
+                    <td className="px-4 py-3.5 text-[13.5px] border-b border-[#F3F4F6] tabular-nums text-ink-800">
+                      {formatCurrency(pm.sharedAlloc)}
+                    </td>
+                    <td className="px-4 py-3.5 text-[13.5px] border-b border-[#F3F4F6] tabular-nums text-ink-800">
+                      {formatCurrency(pm.foundationalFee)}
+                    </td>
+                    <td className="px-4 py-3.5 text-[13.5px] border-b border-[#F3F4F6] tabular-nums font-bold text-ink-800">
+                      {formatCurrency(total)}
+                    </td>
+                    <td className="px-4 py-3.5 border-b border-[#F3F4F6] w-[160px]">
+                      <div
+                        className="flex h-1.5 rounded-full overflow-hidden bg-[#F3F4F6]"
+                        style={{ width: `${barWidth}%` }}
+                      >
+                        <div className="h-full bg-info" style={{ width: `${directPct}%` }} />
+                        <div className="h-full bg-warn" style={{ width: `${sharedPct}%` }} />
+                        <div className="h-full bg-accent" style={{ width: `${foundPct}%` }} />
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
+        </div>
+      </Card>
+
+      <div className="pt-4 flex flex-wrap gap-4 text-xs text-muted">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-info" />
+          Direct Costs
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-warn" />
+          Shared Allocation
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-accent" />
+          Foundational Fee (20%)
         </div>
       </div>
     </div>
